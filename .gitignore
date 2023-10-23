@@ -1,0 +1,10 @@
+.DS_Store
+.venv/
+WT2G/
+
+*.zip
+*.pdf
+*.pages
+*.key
+*.gdoc
+*.tbz
