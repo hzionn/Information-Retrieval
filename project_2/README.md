@@ -8,5 +8,5 @@ Various tools are build on top of [Lemur Project](http://www.lemurproject.org/) 
 
 ## Works
 
-see [WSM Project 2.pdf](WSM Project 2.pdf) for project report.
+see [WSM Project 2.pdf](./WSM Project 2.pdf) for project report.
 
