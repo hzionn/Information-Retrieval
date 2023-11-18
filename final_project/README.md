@@ -6,5 +6,5 @@ Team's Name: `WSM_UTF8`
 
 ## Goal of the Competition
 
-The goal of this competition is to predict e-commerce clicks, cart additions, and orders. 
-We're ask to build a multi-objective recommender system based on previous events in a user session.
+The goal of this competition is to predict e-commerce `clicks`, `cart additions`, and `orders`. 
+We're ask to build a multi-objective **recommender system** based on previous events in a user session.
