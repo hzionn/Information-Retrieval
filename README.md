@@ -1,10 +1,4 @@
-# Project 1
-
-何子安
-
-111753229
-
-資碩計一
+# Information Retrieval - Project 1
 
 ## File Structure
 
@@ -37,7 +31,7 @@ project
 
 ## Installation
 
-please kindly install all the needed dependencies using `pip`:
+Install all the dependencies using `pip`:
 
 ```terminal
 pip install -r requirements.txt
