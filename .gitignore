@@ -1,6 +1,8 @@
 .DS_Store
 .venv/
-WT2G/
+
+EnglishNews/
+__pycache__/
 
 *.zip
 *.pages

@@ -6,11 +6,11 @@ import argparse
 def get_parser():
     parser = argparse.ArgumentParser(description="my descriptions")
     parser.add_argument("--query", type=str, nargs="+")
+    parser.add_argument("--n_sample", type=int, default=8000)
     return parser
 
 
-if __name__ == "__main__":
-
+def main(n_sample: int = 8000):
     parser = get_parser()
     args = parser.parse_args()
     if args.query:
@@ -21,10 +21,10 @@ if __name__ == "__main__":
         print(f"default query: {query}")
 
     # there are 8000 english news in total
-    n_sample = 8000
-    documents, sample_news = read_documents(path="../EnglishNews/", n_sample=n_sample)
+    n_sample = args.n_sample
+    documents, sample_news = read_documents(path="../EnglishNews", n_sample=n_sample)
     assert len(documents) == n_sample
-    
+
     use_search = True
     if use_search:
         vector_space, sample_news = build_vector_space(documents, sample_news)
@@ -50,3 +50,7 @@ if __name__ == "__main__":
     print(f"{'NewsID': <15}", f"{'score': >8}")
     for index in top_ratings_index:
         print(f"{sample_news[index]: <15}", f"{round(ratings[index], 7): >12}")
+
+
+if __name__ == "__main__":
+    main()

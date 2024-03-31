@@ -6,17 +6,19 @@ from tqdm import tqdm
 
 
 class VectorSpace:
-    """ 
-    An algebraic model for representing(tf-idf weighting) text documents as vectors of identifiers.
-    A document is represented as a vector. Each dimension of the vector corresponds to a 
-    separate term.
     """
+    An algebraic model for representing(tf-idf weighting) text documents as vectors of identifiers.
+    A document is represented as a vector. Each dimension of the vector corresponds to a separate term.
+    """
+
     def __init__(self, sample_news: list[str], documents: list[str] = []):
         self.documentVectors = []
         self.idf_values = {}
         self.parser = Parser()
 
-        self.documents, self.sample_news = self.sort_out(documents=documents, sample_news=sample_news)
+        self.documents, self.sample_news = self.sort_out(
+            documents=documents, sample_news=sample_news
+        )
 
         print("...cleaning documents (tokenise, remove stopwords)...")
         self.cleaned_bloblist = []
@@ -26,7 +28,8 @@ class VectorSpace:
             cleaned_doc = " ".join(cleaned)
             self.cleaned_bloblist.append(cleaned_doc)
 
-        if len(self.cleaned_bloblist) > 0: self.build(self.cleaned_bloblist)
+        if len(self.cleaned_bloblist) > 0:
+            self.build(self.cleaned_bloblist)
 
     def build(self, documents: list[str]):
         """Create the vector space for the passed document strings"""
@@ -34,12 +37,13 @@ class VectorSpace:
         self.vectorKeywordIndex: dict = self.getVectorKeywordIndex(documents)
         print(f"(found {len(self.vectorKeywordIndex)} vector keywords)...")
         print("...generating vectors for each document...")
-        self.documentVectors = [self.makeVector(documents[i], i) for i in tqdm(range(len(documents)))]
-
+        self.documentVectors = [
+            self.makeVector(documents[i], i) for i in tqdm(range(len(documents)))
+        ]
 
     def getVectorKeywordIndex(self, documentList: list[str]) -> dict:
         """
-        create the keyword associated to the position of the elements 
+        create the keyword associated to the position of the elements
         within the document vectors
         """
         # Mapped documents into a single word string
@@ -62,10 +66,11 @@ class VectorSpace:
         for word in wordList:
             if word in self.vectorKeywordIndex:
                 vector[self.vectorKeywordIndex[word]] = self.tfidf(
-                    word, wordList, self.documents, i)
+                    word, wordList, self.documents, i
+                )
         return vector
 
-    def buildQueryVector(self, termList:list):
+    def buildQueryVector(self, termList: list):
         """convert query string into a term vector"""
         query_string = " ".join(termList)
         cleaned = self.parser.tokenise(query_string)
@@ -73,38 +78,42 @@ class VectorSpace:
         query_vector = self.makeVector(" ".join(cleaned), 0)
         return query_vector
 
-    def related(self, doc_id: int = -1, faster_way: bool = True) -> list:
-        """ 
-        find documents that are related to the document indexed by passed index within the document Vectors
-        query documents will always be the LAST ONE
+    def related(self, doc_id: int = -1, faster_way: bool = True):
+        """
+        find documents that are related to the document indexed by passed index within the document Vectors.
+        query documents will always be the LAST ONE.
         """
         if not faster_way:
             print("slower calculation")
             ratings = [
                 util.cosine(document_vector, self.documentVectors[doc_id])
-                for document_vector in self.documentVectors]
+                for document_vector in self.documentVectors
+            ]
+            return ratings
         ratings = util.cosine(
-            np.array(self.documentVectors), 
-            np.array(self.documentVectors[doc_id]))
+            np.array(self.documentVectors), np.array(self.documentVectors[doc_id])
+        )
         return ratings
 
     def search(self, searchList: list, distance: str) -> list:
         """search for documents that match based on a list of terms"""
         queryVector = self.buildQueryVector(searchList)
         if distance == "cosine":
-            ratings = util.cosine(
-                np.array(self.documentVectors), np.array(queryVector))
+            ratings = util.cosine(np.array(self.documentVectors), np.array(queryVector))
         elif distance == "euclidean":
             ratings = util.euclidean(
-                np.array(self.documentVectors), np.array(queryVector))
+                np.array(self.documentVectors), np.array(queryVector)
+            )
         return ratings
 
     def sort_out(self, documents: list[str], sample_news: list[str]):
-        assert len(documents) == len(sample_news)
+        """this can greatly speed up the calculation"""
         print("...sort out documents size from biggest to smallest...")
-        name_doc: dict[str, str] = {name: doc for doc, name in zip(documents, sample_news)}
+        name_doc: dict[str, str] = {
+            name: doc for doc, name in zip(documents, sample_news)
+        }
         name_len = {name: len(name_doc[name]) for name in name_doc}
-        name_len_sort = dict(sorted(name_len.items(), key=lambda x:x[1], reverse=True))
+        name_len_sort = dict(sorted(name_len.items(), key=lambda x: x[1], reverse=True))
         new_name_doc = {name: name_doc[name] for name in name_len_sort.keys()}
         documents = [doc for doc in new_name_doc.values()]
         sample_news = [name for name in new_name_doc.keys()]
@@ -126,29 +135,30 @@ class VectorSpace:
         """inverse document frequency"""
         if word not in self.idf_values:
             self.idf_values[word] = math.log(
-                len(bloblist) / (1 + self.n_containing(word, bloblist, i)))
+                len(bloblist) / (1 + self.n_containing(word, bloblist, i))
+            )
         return self.idf_values[word]
 
     def tfidf(self, word: str, blob, bloblist, i):
         return self.tf(word, blob) * self.idf(word, bloblist, i)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     # test data
     documents = [
         "The cat in the hat disabled",
         "A cat is a fine pet ponies.",
         "Dogs and cats make good pets.",
-        "I haven't got a hat."
-        ]
+        "I haven't got a hat.",
+    ]
 
-    vectorSpace = VectorSpace(documents)
+    vectorSpace = VectorSpace(sample_news=[str(i+1) for i in range(len(documents))], documents=documents)
 
-    #print(vectorSpace.vectorKeywordIndex)
+    # print(vectorSpace.vectorKeywordIndex)
 
-    #print(vectorSpace.documentVectors)
+    # print(vectorSpace.documentVectors)
 
     print(vectorSpace.related(1))
 
-    #print(vectorSpace.search(["cat", "hat"]))
+    # print(vectorSpace.search(["cat", "hat"]))

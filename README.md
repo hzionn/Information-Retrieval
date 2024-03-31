@@ -28,6 +28,10 @@ project
 - for each problem set, I have them all in 4 separate directories. (`./question_1`, `./question_2`, `question_3`, `question_4`)
 - you **MUST** execute any `main.py` in their own directory!
 - they **DO NOT** share any of the files.
+- some optimisation techniques are applied to speed up the process:
+  - cache word frequency
+  - use `numpy` for vector operations
+  - **process larger documents first** (the remaining documents for computation will be smaller and smaller)
 
 ## Installation
 
@@ -46,10 +50,13 @@ pip install -r requirements.txt
 
 question 1 aim to build a **Vector Space Model** with **TF-IDF** weighting, and search for potential relevent documents using **cosine similarity**.
 
-you may feed a specific query to the model by just adding `--query <your query>` right after the execution file. FYI, if you leave `--query` blank, the query will set to be default query as "Youtube Taiwan COVID-19".
+you may feed a specific query to the model by just adding `--query <your query>` right after the execution file.
+if you leave `--query` blank, the query will set to be default query as "Youtube Taiwan COVID-19".
+full documents size is 8000, but you can set a smaller size (not too small) for testing by adding `--n_sample <number>`.
 
 ```terminal
-python main.py --query Youtube Taiwan COVID-19
+cd question_1
+python main.py --query Youtube Taiwan COVID-19 --n_sample 500
 ```
 
 the output will pretty much look the same as below.

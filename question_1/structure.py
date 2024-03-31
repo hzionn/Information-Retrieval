@@ -4,24 +4,26 @@ from time import time
 from VectorSpace import VectorSpace
 
 
-def read_documents(path: str = "EnglishNews/", n_sample: int = 8000):
+def read_documents(path: str = "EnglishNews", n_sample: int = 8000):
     print(f"reading {n_sample} documents...")
     sample_news = sample(list(listdir(path)), n_sample)
     documents: list[str] = []
     for sample_new in sample_news:
-        with open(f"{path}{sample_new}", "r") as f:
+        with open(f"{path}/{sample_new}", "r") as f:
             f: list[str] = f.readlines()
             f: str = " ".join(f)
             documents.append(f)
     return documents, sample_news
 
+
 def build_vector_space(documents: list[str], sample_news: list[str]):
     print("building vector space...")
     start = time()
-    vector_space = VectorSpace(documents = documents, sample_news=sample_news)
+    vector_space = VectorSpace(documents=documents, sample_news=sample_news)
     sample_news = vector_space.sample_news
     print(f"time used in building vector space: {round(time() - start, 3)}(s)")
     return vector_space, sample_news
+
 
 def similarity(vector_space, query: str, distance: str):
     print()
@@ -30,6 +32,7 @@ def similarity(vector_space, query: str, distance: str):
     ratings = vector_space.search(query.split(), distance)
     print(f"time used in calculating similarity: {round(time() - start, 3)}(s)")
     return ratings
+
 
 def use_related(documents: list, sample_news: list, query: str):
     documents.append(query)
