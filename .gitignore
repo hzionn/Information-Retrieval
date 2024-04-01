@@ -2,6 +2,7 @@
 .venv/
 
 EnglishNews/
+ChineseNews/
 __pycache__/
 
 *.zip
