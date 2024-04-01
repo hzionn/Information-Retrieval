@@ -1,10 +1,15 @@
 .DS_Store
 .pytest_cache/
+__pycache__/
 .venv/
 
 EnglishNews/
 ChineseNews/
-__pycache__/
+
+ir/sample_data/
+
+!tests/sample_data/EnglishNews/
+!tests/sample_data/ChineseNews/
 
 *.zip
 *.pages
