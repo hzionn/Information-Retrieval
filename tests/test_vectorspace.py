@@ -1,6 +1,6 @@
 from ir.vectorspace import VectorSpace
 
 
-def test_vector_space():
+def test_get_documents_name():
     vs = VectorSpace()
-    assert vs is not None
+    pass

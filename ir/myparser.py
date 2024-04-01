@@ -37,9 +37,9 @@ class Parser:
     def remove_stopwords(self, words_list: List[str]) -> List[str]:
         return [word for word in words_list if word not in self.stopwords]
 
-    def tokenise(self, words_list: List[str]):
+    def tokenise(self, document_content: str) -> List[str]:
         # TODO: clean punctuation
-        return [self.stem(word.strip()) for word in words_list]
+        return [self.stem(word.strip()) for word in document_content.split()]
 
     def _clean_punctuation(self, string: str) -> str:
         # TODO: replace punctuation with space

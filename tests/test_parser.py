@@ -1,6 +1,6 @@
 import os
 
-from ir.parser import Parser
+from ir.myparser import Parser
 
 
 def test_get_punctuation_1():
