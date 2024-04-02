@@ -1,9 +1,7 @@
 """
 create a TF-IDF weighting class for vector space model.
 """
-import math
-from collections import Counter
-from typing import List
+
 
 class TFIDF:
     def __init__(self):

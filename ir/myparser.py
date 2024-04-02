@@ -1,7 +1,13 @@
+"""
+a custom parser that tokenises a document, removes stopwords, and stems words.
+(works only for English and Chinese languages)
+"""
+
 import os
 import string
 from typing import List
 
+import jieba
 from nltk.stem.porter import PorterStemmer
 
 
@@ -34,12 +40,24 @@ class Parser:
         )
         return os.path.join(stopwords_path, stopwords_file)
 
+    def tokenise(self, document_content: str) -> List[str]:
+        """
+        tokenise a document content and stem words for English.
+
+        Args:
+            document_content(str): the content of a document
+
+        Return:
+            List[str]: a list of word tokens
+        """
+        # TODO: clean punctuation
+        if self._language == "english":
+            return [self.stem(word.strip()) for word in document_content.split()]
+        else:
+            return jieba.lcut_for_search(document_content)
+
     def remove_stopwords(self, words_list: List[str]) -> List[str]:
         return [word for word in words_list if word not in self.stopwords]
-
-    def tokenise(self, document_content: str) -> List[str]:
-        # TODO: clean punctuation
-        return [self.stem(word.strip()) for word in document_content.split()]
 
     def _clean_punctuation(self, string: str) -> str:
         # TODO: replace punctuation with space
