@@ -61,7 +61,8 @@ class VectorSpace:
         """
         name_content = {}
         path = os.path.join(os.path.dirname(__file__), self.documents_directory)
-        names = sample(os.listdir(path), sample_size) if sample_size > 0 else os.listdir(path)
+        only_text_files = [f for f in os.listdir(path) if f.endswith(".txt")]
+        names = sample(only_text_files, sample_size) if sample_size > 0 else only_text_files
         contents = []
         for document in names:
             with open(os.path.join(path, document), "r") as f:
