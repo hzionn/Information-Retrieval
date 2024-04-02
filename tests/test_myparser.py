@@ -61,8 +61,9 @@ def test_remove_stopwords_2():
 
 def test_tokenise():
     parser = Parser()
-    words_list = ["running", "swimming", "she", "fun"]
-    assert parser.tokenise(words_list) == ["run", "swim", "she", "fun"]
+    words_list = "she is swimming for fun while he is running"
+    true_list = ["she", "is", "swim", "for", "fun", "while", "he", "is", "run"]
+    assert parser.tokenise(words_list) == true_list
 
 
 def test_stem_1():

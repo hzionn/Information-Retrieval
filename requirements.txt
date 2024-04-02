@@ -5,3 +5,4 @@ jieba
 pandas
 
 #pytest
+#pytest-cov
