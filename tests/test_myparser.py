@@ -59,10 +59,23 @@ def test_remove_stopwords_2():
     assert parser.remove_stopwords(words_list) == ["fun"]
 
 
-def test_tokenise():
-    parser = Parser()
+def test_remove_stopwords_3():
+    parser = Parser(language="chinese")
+    words_list = ["他", "她", "在", "游泳"]
+    assert parser.remove_stopwords(words_list) == ["游泳"]
+
+
+def test_tokenise_english():
+    parser = Parser(language="english")
     words_list = "she is swimming for fun while he is running"
     true_list = ["she", "is", "swim", "for", "fun", "while", "he", "is", "run"]
+    assert parser.tokenise(words_list) == true_list
+
+
+def test_tokenise_chinese():
+    parser = Parser(language="chinese")
+    words_list = "她在游泳，他在跑步"
+    true_list = ["她", "在", "游泳", "，", "他", "在", "跑步"]
     assert parser.tokenise(words_list) == true_list
 
 
