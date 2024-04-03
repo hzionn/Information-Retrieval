@@ -1,9 +1,11 @@
 .DS_Store
-.coverage
+.coverage*
 .pytest_cache/
 __pycache__/
 .vscode/
 .venv/
+
+*_UML.txt
 
 EnglishNews/
 ChineseNews/
