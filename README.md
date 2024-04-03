@@ -7,6 +7,12 @@
   - use `numpy` for vector operations
   - **process larger documents first** (the remaining documents for computation will be smaller and smaller)
 
+## My Environment
+
+- OS: MacOS
+- RAM: 8G
+- Python: 3.11
+
 ## Installation
 
 Install all the dependencies using `pip` within virtual environment:
@@ -17,11 +23,18 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## My Environment
+## Usage
 
-- OS: MacOS
-- RAM: 8G
-- Python: 3.11
+Build vector space model in `main.py` and run:
+(all functionality is in `ir` module)
+
+```bash
+python main.py
+```
+
+## UML
+
+TODO: UML diagram
 
 ## Question 1
 
@@ -52,10 +65,10 @@ in `search`, only if we have give `old_query_vector` argurment then it will re-s
 def search(self, searchList: list, distance: str, old_query_vector: list[float] = None) -> list:
     """search for documents that match based on a list of terms"""
     assert distance in ("cosine", "euclidean")
-    
+
     print("...searching relevent documents...")
     queryVector = self.buildQueryVector(searchList)
-    
+
     # for second retrieve
     if old_query_vector:
         # re-weighting with old query vector and new one to form a new query vector
