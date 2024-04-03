@@ -1,10 +1,11 @@
 """
-a vector space model for information retrieval with tf-idf weighting.
+a vector space model for information retrieval with weighting.
 """
 
 import os
 from random import sample
-from typing import List, Dict
+from typing import Dict
+
 from tqdm import tqdm
 
 from .model import TFIDF
@@ -12,23 +13,23 @@ from .myparser import Parser
 
 
 class VectorSpace:
-    def __init__(self, model=TFIDF(), parser=Parser()):
-        """
-        a vector space model for information retrieval with tf-idf weighting.
+    """a vector space model for information retrieval with weighting."""
 
+    def __init__(self, weighting_model=TFIDF(), parser=Parser()):
+        """
         Args:
-            model: a document weighting model
+            weighting_model: a document weighting model
             parser: a custom document parser
         """
-        self.model = model
+        self.weighting_model = weighting_model
         self.parser = parser
         self.documents_directory = ""
-        self.documents_name_content = {}
-        print("vector space initailized")
+        self.documents_name_content = {}  # TODO: this can be a stand alone class
+        print("Vector Space Initailized")
 
     def build(self, documents_directory: str, sample_size: int = -1, to_sort: bool = True):
         """
-        build up our vector space model
+        a pipeline to build our vector space model
 
         Args:
             documents_directory(str): the directory containing all documents
@@ -39,7 +40,11 @@ class VectorSpace:
         self.documents_name_content = self._get_documents_name_content(sample_size=sample_size)
         self.documents_name_content = self._clean_all_documents()
         self.documents_name_content = self._sort_documents_by_size(to_sort=to_sort)
-        pass
+        self.weighting_model.compute(
+            documents_content=list(self.documents_name_content.values()),
+            parser=self.parser,
+        )
+        print("Vector Space Built")
 
     def _clean_single_document(self, document_content: str) -> str:
         """clean single document content"""
@@ -48,13 +53,14 @@ class VectorSpace:
         return " ".join(cleaned_content)
 
     def _clean_all_documents(self) -> Dict[str, str]:
-        for name, content in tqdm(self.documents_name_content.items(), desc="cleaning documents", ncols=100):
+        """clean all documents content"""
+        for name, content in tqdm(self.documents_name_content.items(), desc="Cleaning documents", ncols=90):
             self.documents_name_content[name] = self._clean_single_document(content)
         return self.documents_name_content
 
     def _get_documents_name_content(self, sample_size: int = -1) -> Dict[str, str]:
         """
-        get all documents' name and content mapping
+        get all documents' name and content then map them
 
         Args:
             sample_size(int): the number of documents to sample (<=0 means all documents)
@@ -82,22 +88,21 @@ class VectorSpace:
         name_len = {name: len(name_content[name]) for name in name_content}
         name_len_sorted = dict(sorted(name_len.items(), key=lambda x: x[1], reverse=True))
         new_name_content = {name: name_content[name] for name in name_len_sorted.keys()}
-        for doc, news in tqdm(zip(list(new_name_content.keys()), list(new_name_content.values())), desc="sorting documents by size", ncols=0):
+        for doc, news in tqdm(zip(list(new_name_content.keys()), list(new_name_content.values())), desc="Sorting documents by size", ncols=90):
             sorted_name_content[doc] = news
         return sorted_name_content
 
 
+class Documents:
+    # TODO:
+    def __init__(self) -> None:
+        self.directory = ""
+        self.filenames = []
+        self.filecontents = []
+
+
 def main():
-    vs = VectorSpace()
-    vs.build("sample_data/EnglishNews", sample_size=0)
-    # print(vs.documents_name_content)
-    print(vs.documents_name_content["News996.txt"])
-    print(len(vs.documents_name_content[list(vs.documents_name_content.keys())[0]]))
-    print(len(vs.documents_name_content[list(vs.documents_name_content.keys())[100]]))
-    print(len(vs.documents_name_content[list(vs.documents_name_content.keys())[200]]))
-    print(len(vs.documents_name_content[list(vs.documents_name_content.keys())[-1]]))
-    # print(type(name_content["News996.txt"]))
-    # parser = Parser()
+    pass
 
 
 if __name__ == "__main__":
