@@ -3,3 +3,6 @@ nltk
 tqdm
 jieba
 pandas
+
+#pytest
+#pytest-cov

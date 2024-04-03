@@ -1,8 +1,19 @@
 .DS_Store
+.coverage*
+.pytest_cache/
+__pycache__/
+.vscode/
 .venv/
 
+*_UML.txt
+
 EnglishNews/
-__pycache__/
+ChineseNews/
+
+ir/sample_data/
+
+!tests/sample_data/EnglishNews/
+!tests/sample_data/ChineseNews/
 
 *.zip
 *.pages
