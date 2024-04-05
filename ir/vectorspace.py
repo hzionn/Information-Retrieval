@@ -8,14 +8,13 @@ from typing import Dict
 
 from tqdm import tqdm
 
-from .model import TFIDF
 from .myparser import Parser
 
 
 class VectorSpace:
     """a vector space model for information retrieval with weighting."""
 
-    def __init__(self, weighting_model=TFIDF(), parser=Parser()):
+    def __init__(self, weighting_model, parser=Parser()):
         """
         Args:
             weighting_model: a document weighting model
@@ -63,12 +62,15 @@ class VectorSpace:
         get all documents' name and content then map them
 
         Args:
-            sample_size(int): the number of documents to sample (<=0 means all documents)
+            sample_size(int): the number of documents to sample (-1 means all documents)
         """
         name_content = {}
         path = os.path.join(os.path.dirname(__file__), self.documents_directory)
         only_text_files = [f for f in os.listdir(path) if f.endswith(".txt")]
-        names = sample(only_text_files, sample_size) if sample_size > 0 else only_text_files
+        if sample_size == -1:
+            names = only_text_files
+        else:
+            names = sample(only_text_files, sample_size)
         contents = []
         for document in names:
             with open(os.path.join(path, document), "r") as f:
@@ -96,9 +98,17 @@ class VectorSpace:
 class Documents:
     # TODO:
     def __init__(self) -> None:
-        self.directory = ""
-        self.filenames = []
-        self.filecontents = []
+        self._directory = ""
+        self._filenames = []
+        self._filecontents = []
+    
+    @property
+    def filenames(self):
+        pass
+
+    @property
+    def filecontents(self):
+        pass
 
 
 def main():

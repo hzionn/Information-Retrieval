@@ -14,6 +14,10 @@ class Model:
         self.WEIGHTING_METHOD = ""
         self.vector_keyword_index = {}
     
+    def weighting(self, *args, **kwargs):
+        """placeholder method to be overridden by subclasses"""
+        raise NotImplementedError("Subclass must implement this method")
+
     def _set_vector_keyword_index(self, parser):
         """set vector keyword index {vector_keyword: index}"""
         words = []
@@ -32,17 +36,13 @@ class Model:
             if word not in self.vector_keyword_index:
                 raise ValueError(f"word '{word}' not in vector keyword index")
             else:
-                vector[self.vector_keyword_index[word]] = self._weighting(
+                vector[self.vector_keyword_index[word]] = self.weighting(
                     word=word,
                     words=words,
                     documents_content=self.documents_content,
                 )
         return vector
     
-    def _weighting(self, *args, **kwargs):
-        """placeholder method to be overridden by subclasses"""
-        raise NotImplementedError("Subclass must implement this method")
-
     def compute(self, documents_content: List[str], parser):
         self.documents_content = documents_content
         if len(self.vector_keyword_index) == 0:
@@ -80,7 +80,7 @@ class TFIDF(Model):
         """
         return log(len(documents_content) / (1 + self._n_containing(word, documents_content)))
 
-    def _weighting(self, word: str, words: List[str], documents_content: List[str]) -> float:
+    def weighting(self, word: str, words: List[str], documents_content: List[str]) -> float:
         """
         term frequency-inverse document frequency
         """
@@ -88,9 +88,57 @@ class TFIDF(Model):
 
 
 class BM25(Model):
-    def __init__(self):
+    def __init__(self, k1=1.5, b=0.75):
         super().__init__()
         self.WEIGHTING_METHOD = "BM25"
-    
-    def _weighting(self, *args, **kwargs):
-        pass
+        self.k1 = k1
+        self.b = b
+        self.documents_content = []
+        self.documents_vector = []
+        self._idf_cache = {}
+        self.avgdl = 0
+
+    def _tf(self, word: str, words: List[str]) -> float:
+        """
+        term frequency
+        """
+        return Counter(words)[word] / len(words)
+
+    def _n_containing(self, word: str, documents_content: List[str]) -> int:
+        if word not in self._idf_cache:
+            self._idf_cache[word] = sum(1 for document_content in documents_content if word in document_content)
+        return self._idf_cache[word]
+
+    def _idf(self, word: str, documents_content: List[str]) -> float:
+        """
+        inverse document frequency
+        """
+        return log((len(documents_content) - self._n_containing(word, documents_content) + 0.5) / (self._n_containing(word, documents_content) + 0.5))
+
+    def _compute_avgdl(self):
+        """
+        compute average document length
+        """
+        total_words = sum(len(document_content.split()) for document_content in self.documents_content)
+        self.avgdl = total_words / len(self.documents_content)
+
+    def weighting(self, word: str, words: List[str], documents_content: List[str]) -> float:
+        """
+        term frequency-inverse document frequency
+        """
+        tf = self._tf(word, words)
+        idf = self._idf(word, documents_content)
+        dl = len(words)
+        return idf * ((tf * (self.k1 + 1)) / (tf + self.k1 * (1 - self.b + self.b * (dl / self.avgdl))))
+
+    def compute(self, documents_content: List[str], parser):
+        self.documents_content = documents_content
+        self._compute_avgdl()
+        if len(self.vector_keyword_index) == 0:
+            self._set_vector_keyword_index(parser=parser)
+
+        self.documents_vector = [
+            self._make_vector(documents_content[i], parser=parser)
+            for i in trange(len(documents_content), desc=f"Computing {self.WEIGHTING_METHOD}", ncols=90)
+        ]
+        return self.documents_vector
