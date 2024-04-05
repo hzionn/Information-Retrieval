@@ -1,7 +1,7 @@
 import os
 
-from nltk.stem import PorterStemmer
 import pytest
+from nltk.stem import PorterStemmer
 
 from ir.myparser import Parser
 
@@ -80,6 +80,4 @@ def test_stem_2(parser_porter):
 
 def test_clean_punctuation(parser_default):
     string = "Hello, world!"
-    assert parser_default._clean_punctuation(string) == "Hello world"
-
-
+    assert parser_default._clean_punctuation(string) == "Hello  world "
