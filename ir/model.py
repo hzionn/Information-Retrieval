@@ -12,7 +12,9 @@ from tqdm import trange
 class Model:
     def __init__(self):
         self.WEIGHTING_METHOD = ""
+        self.documents_content = []
         self.vector_keyword_index = {}
+        self.documents_vector = [[]]
     
     def weighting(self, *args, **kwargs):
         """placeholder method to be overridden by subclasses"""
@@ -43,8 +45,13 @@ class Model:
                 )
         return vector
     
+    def pre_compute(self):
+        """placeholder method to be overridden by subclasses"""
+        return NotImplementedError("Subclass must implement this method") 
+    
     def compute(self, documents_content: List[str], parser):
         self.documents_content = documents_content
+        self.pre_compute()
         if len(self.vector_keyword_index) == 0:
             self._set_vector_keyword_index(parser=parser)
 
@@ -56,11 +63,18 @@ class Model:
 
 
 class TFIDF(Model):
+    """
+    Term frequency-inverse document frequency (TFIDF) weighting model.
+
+    (Wikipedia) In information retrieval, `tf-idf` (also TF*IDF, TFIDF, TF-IDF, or Tf-idf),
+    short for term frequency-inverse document frequency, is a measure of importance
+    of a word to a document in a collection or corpus, adjusted for the fact that some
+    words appear more frequently in general.
+    """
     def __init__(self):
         super().__init__()
         self.WEIGHTING_METHOD = "TFIDF"
         self.documents_content = []
-        self.documents_vector = []
         self._idf_cache = {}
 
     def _tf(self, word: str, words: List[str]) -> float:
@@ -71,7 +85,10 @@ class TFIDF(Model):
 
     def _n_containing(self, word: str, documents_content: List[str]) -> int:
         if word not in self._idf_cache:
-            self._idf_cache[word] = sum(1 for document_content in documents_content if word in document_content)
+            self._idf_cache[word] = sum(
+                1 for document_content in documents_content
+                if word in document_content
+            )
         return self._idf_cache[word]
 
     def _idf(self, word: str, documents_content: List[str]) -> float:
@@ -88,9 +105,23 @@ class TFIDF(Model):
 
 
 class BM25(Model):
+    """
+    Okapi BM25 weighting model.
+
+    (Wikipedia) In information retrieval,
+    Okapi `BM25` (BM is an abbreviation of best matching) is a ranking function
+    used by search engines to estimate the relevance of documents to a given search query.
+    """
     def __init__(self, k1=1.5, b=0.75):
+        """
+        Args:
+            k1 (float, optional): Turing parameter that calibrates the document term frequency
+            scaling. Defaults to 1.5.
+            b (float, optional): Turing parameter between 0 and 1 that determines the scaling
+            by document length. Defaults to 0.75.
+        """
         super().__init__()
-        self.WEIGHTING_METHOD = "BM25"
+        self.WEIGHTING_METHOD = "Okapi BM25"
         self.k1 = k1
         self.b = b
         self.documents_content = []
@@ -113,7 +144,8 @@ class BM25(Model):
         """
         inverse document frequency
         """
-        return log((len(documents_content) - self._n_containing(word, documents_content) + 0.5) / (self._n_containing(word, documents_content) + 0.5))
+        n_containing = self._n_containing(word, documents_content)
+        return log((len(documents_content) - n_containing + 0.5) / (n_containing + 0.5))
 
     def _compute_avgdl(self):
         """
@@ -128,17 +160,9 @@ class BM25(Model):
         """
         tf = self._tf(word, words)
         idf = self._idf(word, documents_content)
-        dl = len(words)
-        return idf * ((tf * (self.k1 + 1)) / (tf + self.k1 * (1 - self.b + self.b * (dl / self.avgdl))))
-
-    def compute(self, documents_content: List[str], parser):
-        self.documents_content = documents_content
+        return idf * ((tf * (self.k1 + 1)) / (
+            tf + self.k1 * (1 - self.b + self.b * (len(words) / self.avgdl))
+        ))
+    
+    def pre_compute(self):
         self._compute_avgdl()
-        if len(self.vector_keyword_index) == 0:
-            self._set_vector_keyword_index(parser=parser)
-
-        self.documents_vector = [
-            self._make_vector(documents_content[i], parser=parser)
-            for i in trange(len(documents_content), desc=f"Computing {self.WEIGHTING_METHOD}", ncols=90)
-        ]
-        return self.documents_vector

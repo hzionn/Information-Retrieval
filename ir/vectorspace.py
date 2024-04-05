@@ -24,6 +24,7 @@ class VectorSpace:
         self.parser = parser
         self.documents_directory = ""
         self.documents_name_content = {}  # TODO: this can be a stand alone class
+        self.documents_vector = [[]]
         print("Vector Space Initailized")
 
     def build(self, documents_directory: str, sample_size: int = -1, to_sort: bool = True):
@@ -31,15 +32,15 @@ class VectorSpace:
         a pipeline to build our vector space model
 
         Args:
-            documents_directory(str): the directory containing all documents
-            sample_size(int): the number of documents to sample
-            to_sort(bool): whether to sort the documents by size or not
+            documents_directory (str): the directory containing all documents
+            sample_size (int): the number of documents to sample
+            to_sort (bool): whether to sort the documents by size or not
         """
         self.documents_directory = documents_directory
         self.documents_name_content = self._get_documents_name_content(sample_size=sample_size)
         self.documents_name_content = self._clean_all_documents()
         self.documents_name_content = self._sort_documents_by_size(to_sort=to_sort)
-        self.weighting_model.compute(
+        self.documents_vector = self.weighting_model.compute(
             documents_content=list(self.documents_name_content.values()),
             parser=self.parser,
         )
@@ -62,7 +63,7 @@ class VectorSpace:
         get all documents' name and content then map them
 
         Args:
-            sample_size(int): the number of documents to sample (-1 means all documents)
+            sample_size (int): the number of documents to sample (-1 means all documents)
         """
         name_content = {}
         path = os.path.join(os.path.dirname(__file__), self.documents_directory)

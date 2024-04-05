@@ -1,5 +1,5 @@
 run:
-	python main.py
+	python main.py --sample-size 500
 
 vec:
 	python -m ir.vectorspace

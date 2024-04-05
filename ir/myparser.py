@@ -36,7 +36,7 @@ class Parser:
         tokenise a document content and stem words for English.
 
         Args:
-            document_content(str): the content of a single document
+            document_content (str): the content of a single document
 
         Return:
             List[str]: a list of word tokens
