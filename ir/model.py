@@ -10,6 +10,7 @@ from tqdm import trange
 
 
 class Model:
+    """A template for all weighting models."""
     def __init__(self):
         self.WEIGHTING_METHOD = ""
         self.documents_content = []
@@ -52,8 +53,7 @@ class Model:
     def compute(self, documents_content: List[str], parser):
         self.documents_content = documents_content
         self.pre_compute()
-        if len(self.vector_keyword_index) == 0:
-            self._set_vector_keyword_index(parser=parser)
+        self._set_vector_keyword_index(parser=parser)
 
         self.documents_vector = [
             self._make_vector(documents_content[i], parser=parser)

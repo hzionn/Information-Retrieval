@@ -34,13 +34,13 @@ def bm25():
 def test_tfidf_sample_size(tfidf, file_path):
     sample_size = 20
     tfidf.build(documents_directory=file_path, sample_size=sample_size)
-    assert len(tfidf.documents_name_content) == sample_size
+    assert len(tfidf.docs.info) == sample_size
 
 
 def test_bm25_sample_size(bm25, file_path):
     sample_size = 20
     bm25.build(documents_directory=file_path, sample_size=sample_size)
-    assert len(bm25.documents_name_content) == sample_size
+    assert len(bm25.docs.info) == sample_size
 
 
 @pytest.fixture
@@ -64,6 +64,7 @@ def bm25_with_sort(file_path):
 
 
 def test_tfidf_sort_document_by_size_english(tfidf_with_sort):
+    # FIXME: VectorSpace has new implementation for Documents
     documents_length = []
     for i in (0, 50, 70, -1):
         which_key = list(tfidf_with_sort.documents_name_content.keys())[i]
@@ -74,6 +75,7 @@ def test_tfidf_sort_document_by_size_english(tfidf_with_sort):
 
 
 def test_bm25_sort_document_by_size_english(bm25_with_sort):
+    # FIXME: VectorSpace has new implementation for Documents
     documents_length = []
     for i in (0, 50, 70, -1):
         which_key = list(bm25_with_sort.documents_name_content.keys())[i]
