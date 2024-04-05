@@ -16,6 +16,10 @@ def main(sample_size):
     files_path = os.path.join(os.path.dirname(__file__), "data", "EnglishNews")
     vs.build(documents_directory=files_path, sample_size=sample_size, to_sort=True)
     # print(vs.documents_name_content)
+    print(vs.documents_vector)
+    print(type(vs.documents_vector))
+    print(len(vs.documents_vector))
+    print(len(vs.documents_vector[0]))
     # print(len(vs.documents_name_content[list(vs.documents_name_content.keys())[0]]))
     # print(len(vs.documents_name_content[list(vs.documents_name_content.keys())[100]]))
     # print(len(vs.documents_name_content[list(vs.documents_name_content.keys())[200]]))
@@ -30,7 +34,9 @@ def main(sample_size):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Build a Vector Space Model from a directory of documents")
+    parser = argparse.ArgumentParser(
+        description="Build a Vector Space Model from a directory of documents"
+    )
     parser.add_argument(
         "--sample-size",
         type=int,
