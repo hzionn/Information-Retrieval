@@ -16,7 +16,7 @@ class Model:
         self.documents_content = []
         self.vector_keyword_index = {}
         self.documents_vector = [[]]
-    
+
     def weighting(self, *args, **kwargs):
         """placeholder method to be overridden by subclasses"""
         raise NotImplementedError("Subclass must implement this method")
@@ -30,33 +30,30 @@ class Model:
         for _, word in enumerate(set(words)):
             if word not in self.vector_keyword_index:
                 self.vector_keyword_index[word] = len(self.vector_keyword_index)
-    
-    def _make_vector(self, document_content: str, parser) -> List[float]:
+
+    def make_vector(self, document_content: str, parser) -> List[float]:
         """build document vector with weighting model"""
         vector = [0.0] * len(self.vector_keyword_index)
         words = list(set(parser.tokenise(document_content)))
         for word in words:
-            if word not in self.vector_keyword_index:
-                raise ValueError(f"word '{word}' not in vector keyword index")
-            else:
-                vector[self.vector_keyword_index[word]] = self.weighting(
-                    word=word,
-                    words=words,
-                    documents_content=self.documents_content,
-                )
+            vector[self.vector_keyword_index[word]] = self.weighting(
+                word=word,
+                words=words,
+                documents_content=self.documents_content,
+            )
         return vector
-    
+
     def pre_compute(self):
         """placeholder method to be overridden by subclasses"""
         return NotImplementedError("Subclass must implement this method") 
-    
-    def compute(self, documents_content: List[str], parser):
+
+    def make_matrix(self, documents_content: List[str], parser):
         self.documents_content = documents_content
         self.pre_compute()
         self._set_vector_keyword_index(parser=parser)
 
         self.documents_vector = [
-            self._make_vector(documents_content[i], parser=parser)
+            self.make_vector(documents_content[i], parser=parser)
             for i in trange(len(documents_content), desc=f"Computing {self.WEIGHTING_METHOD}", ncols=90)
         ]
         return self.documents_vector
@@ -163,6 +160,6 @@ class BM25(Model):
         return idf * ((tf * (self.k1 + 1)) / (
             tf + self.k1 * (1 - self.b + self.b * (len(words) / self.avgdl))
         ))
-    
+
     def pre_compute(self):
         self._compute_avgdl()

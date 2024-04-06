@@ -95,5 +95,9 @@ def bm25_with_sort(file_path):
     return vs
 
 
+def test_tfidf_related(tfidf_with_sort):
+    pass
 
 
+def test_bm25_related(bm25_with_sort):
+    pass
