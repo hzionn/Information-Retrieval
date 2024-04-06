@@ -8,6 +8,7 @@ from random import sample
 from typing import Dict, List
 
 import numpy as np
+from numpy.typing import NDArray
 from tqdm import tqdm
 
 from .myparser import Parser
@@ -47,6 +48,7 @@ class VectorSpace:
         self.query_vector = []
         self._is_built = False
         self._usage = ""
+        self.scores: NDArray
 
         self._logger.info("Vector Space Initailized")
 
@@ -74,9 +76,9 @@ class VectorSpace:
         if not self._is_built:
             raise Exception("The vector space model is not built yet.")
         self._logger.info("Finding related documents")
-        scores = Metric.cosine_similarity(np.array(self.documents_vector), np.array(self.documents_vector[doc_index]))
+        self.scores = Metric.cosine_similarity(np.array(self.documents_vector), np.array(self.documents_vector[doc_index]))
         self._usage = "related"
-        return scores
+        return self.scores
 
     def search(self, query: str):
         """given a query, find documents that match based on the query string."""
@@ -85,17 +87,19 @@ class VectorSpace:
         self._logger.info(f"Searching documents with query: {query}")
         self.query_vector = self.weighting_model.make_vector(query, parser=self.parser)
         self._logger.debug("Query Vector: %s", self.query_vector)
-        scores = Metric.cosine_similarity(np.array(self.documents_vector), np.array(self.query_vector))
+        self.scores = Metric.cosine_similarity(np.array(self.documents_vector), np.array(self.query_vector))
         self._usage = "search"
-        return scores
+        return self.scores
 
     def rank(self, top_k: int = 10):
-        # TODO:
-        if not self._usage:
-            raise Exception("You need to call related() or search() first.")
+        self._logger.info("Ranking documents")
         if self._usage == "related":
-            return np.argsort(self.related())[-top_k:]
-        pass
+            top_k_index = np.argsort(self.scores)[-top_k:][::-1]
+        elif self._usage == "search":
+            top_k_index = np.argsort(self.scores)[-top_k:][::-1]
+        else:
+            raise Exception("You need to call related() or search() first.")
+        return [(self.docs.document_names[i], self.scores[i]) for i in top_k_index if self.docs is not None]
 
 
 class Documents:
@@ -204,11 +208,14 @@ def main():
     directory = os.path.join(os.path.dirname(__file__), "sample_data", "EnglishNews")
     vs = VectorSpace(weighting_model=TFIDF(), parser=Parser(stemmer=PorterStemmer()), logging_level="INFO")
     vs.build(documents_directory=directory, sample_size=50, to_sort=True)
+
     related_scores = vs.related(doc_index=40)
     print(related_scores)
     search_scores = vs.search("coronavirus is a pandemic")
     print(search_scores)
-    print(vs.weighting_model)
+
+    for doc, score in vs.rank(top_k=5):
+        print(doc, score)
 
 
 if __name__ == "__main__":
