@@ -36,11 +36,12 @@ class Model:
         vector = [0.0] * len(self.vector_keyword_index)
         words = list(set(parser.tokenise(document_content)))
         for word in words:
-            vector[self.vector_keyword_index[word]] = self.weighting(
-                word=word,
-                words=words,
-                documents_content=self.documents_content,
-            )
+            if word in self.vector_keyword_index:
+                vector[self.vector_keyword_index[word]] = self.weighting(
+                    word=word,
+                    words=words,
+                    documents_content=self.documents_content,
+                )
         return vector
 
     def pre_compute(self):
