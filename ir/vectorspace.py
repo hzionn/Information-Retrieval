@@ -28,18 +28,17 @@ def setup_logger(filename, classname, level):
 class VectorSpace:
     """a vector space model for information retrieval with weighting."""
 
-    def __init__(self, weighting_model, parser=Parser()):
+    def __init__(self, weighting_model, parser=Parser(), logging_level="INFO"):
         """
         Args:
             weighting_model: a document weighting model
             parser: a custom document parser
+            logging_level (str): logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
         """
         self._logger = setup_logger(
             filename=__file__,
             classname=self.__class__.__name__,
-            level="DEBUG",
-            # level="INFO",
-            # level="WARNING",
+            level=logging_level.upper(),
         )
         self.weighting_model = weighting_model
         self.parser = parser
@@ -47,6 +46,7 @@ class VectorSpace:
         self.documents_vector = [[]]
         self.query_vector = []
         self._is_built = False
+        self._usage = ""
 
         self._logger.info("Vector Space Initailized")
 
@@ -73,26 +73,37 @@ class VectorSpace:
         """find documents that are related to the document indexed by passed index within the documents' vector."""
         if not self._is_built:
             raise Exception("The vector space model is not built yet.")
+        self._logger.info("Finding related documents")
         scores = Metric.cosine_similarity(np.array(self.documents_vector), np.array(self.documents_vector[doc_index]))
+        self._usage = "related"
         return scores
 
     def search(self, query: str):
         """given a query, find documents that match based on the query string."""
         if not self._is_built:
             raise Exception("The vector space model is not built yet.")
-        self.quey_vector = self.weighting_model.make_vector(query, parser=self.parser)
+        self._logger.info(f"Searching documents with query: {query}")
+        self.query_vector = self.weighting_model.make_vector(query, parser=self.parser)
+        self._logger.debug("Query Vector: %s", self.query_vector)
         scores = Metric.cosine_similarity(np.array(self.documents_vector), np.array(self.query_vector))
+        self._usage = "search"
         return scores
+
+    def rank(self, top_k: int = 10):
+        # TODO:
+        if not self._usage:
+            raise Exception("You need to call related() or search() first.")
+        if self._usage == "related":
+            return np.argsort(self.related())[-top_k:]
+        pass
 
 
 class Documents:
-    def __init__(self, directory: str, parser, sample_size: int = -1, to_sort: bool = True) -> None:
+    def __init__(self, directory: str, parser, sample_size: int = -1, to_sort: bool = True, logging_level: str = "INFO") -> None:
         self._logger = setup_logger(
             filename=__file__,
             classname=self.__class__.__name__,
-            level="DEBUG",
-            # level="INFO",
-            # level="WARNING",
+            level=logging_level.upper(),
         )
         self._directory = directory
         self._parser = parser
@@ -183,7 +194,7 @@ class Documents:
     def document_contents(self) -> List[str]:
         return self._document_contents
 
-    def __str__(self) -> str:
+    def __str__(self):
         return f"{self.info}"
 
 
@@ -191,8 +202,13 @@ def main():
     from nltk.stem.porter import PorterStemmer
     from ir.model import TFIDF
     directory = os.path.join(os.path.dirname(__file__), "sample_data", "EnglishNews")
-    vs = VectorSpace(weighting_model=TFIDF(), parser=Parser(stemmer=PorterStemmer()))
-    vs.build(documents_directory=directory, sample_size=10, to_sort=True)
+    vs = VectorSpace(weighting_model=TFIDF(), parser=Parser(stemmer=PorterStemmer()), logging_level="INFO")
+    vs.build(documents_directory=directory, sample_size=50, to_sort=True)
+    related_scores = vs.related(doc_index=40)
+    print(related_scores)
+    search_scores = vs.search("coronavirus is a pandemic")
+    print(search_scores)
+    print(vs.weighting_model)
 
 
 if __name__ == "__main__":
