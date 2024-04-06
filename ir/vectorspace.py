@@ -46,6 +46,7 @@ class VectorSpace:
         self.docs = None
         self.documents_vector = [[]]
         self.query_vector = []
+        self._is_built = False
 
         self._logger.info("Vector Space Initailized")
 
@@ -65,15 +66,20 @@ class VectorSpace:
             documents_content=self.docs.document_contents,
             parser=self.parser,
         )
+        self._is_built = True
         self._logger.info("Vector Space Built")
 
-    def related(self, doc_id: int = -1):
+    def related(self, doc_index: int = -1):
         """find documents that are related to the document indexed by passed index within the documents' vector."""
-        scores = Metric.cosine_similarity(np.array(self.documents_vector), np.array(self.documents_vector[doc_id]))
+        if not self._is_built:
+            raise Exception("The vector space model is not built yet.")
+        scores = Metric.cosine_similarity(np.array(self.documents_vector), np.array(self.documents_vector[doc_index]))
         return scores
 
     def search(self, query: str):
         """given a query, find documents that match based on the query string."""
+        if not self._is_built:
+            raise Exception("The vector space model is not built yet.")
         self.quey_vector = self.weighting_model.make_vector(query, parser=self.parser)
         scores = Metric.cosine_similarity(np.array(self.documents_vector), np.array(self.query_vector))
         return scores
