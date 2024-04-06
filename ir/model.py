@@ -59,6 +59,11 @@ class Model:
         ]
         return self.documents_vector
 
+    def __str__(self):
+        if not self.WEIGHTING_METHOD:
+            raise NotImplementedError("Subclass should set self.WEIGHTING_METHOD attribute")
+        return f"{self.WEIGHTING_METHOD}"
+
 
 class TFIDF(Model):
     """
