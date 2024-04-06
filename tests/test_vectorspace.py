@@ -43,6 +43,38 @@ def test_bm25_sample_size(bm25, file_path):
     assert len(bm25.docs.info) == sample_size
 
 
+def test_tfidf_sort_document_by_size_english(tfidf, file_path):
+    tfidf.build(documents_directory=file_path, sample_size=-1, to_sort=True)
+    documents_length = []
+    for i in [0, 50, 70, -1]:
+        documents_length.append(len(tfidf.docs.document_contents[i]))
+    assert documents_length[0] >= documents_length[1] >= documents_length[2] >= documents_length[3]
+
+
+def test_bm25_sort_document_by_size_english(bm25, file_path):
+    bm25.build(documents_directory=file_path, sample_size=-1, to_sort=True)
+    documents_length = []
+    for i in [0, 50, 70, -1]:
+        documents_length.append(len(bm25.docs.document_contents[i]))
+    assert documents_length[0] >= documents_length[1] >= documents_length[2] >= documents_length[3]
+
+
+def test_tfidf_not_sort_document_by_size_english(tfidf, file_path):
+    tfidf.build(documents_directory=file_path, sample_size=-1, to_sort=False)
+    documents_length = []
+    for i in [0, 50, 70, -1]:
+        documents_length.append(len(tfidf.docs.document_contents[i]))
+    assert not (documents_length[0] >= documents_length[1] >= documents_length[2] >= documents_length[3])
+
+
+def test_bm25_not_sort_document_by_size_english(bm25, file_path):
+    bm25.build(documents_directory=file_path, sample_size=-1, to_sort=False)
+    documents_length = []
+    for i in [0, 50, 70, -1]:
+        documents_length.append(len(bm25.docs.document_contents[i]))
+    assert not (documents_length[0] >= documents_length[1] >= documents_length[2] >= documents_length[3])
+
+
 @pytest.fixture
 def tfidf_with_sort(file_path):
     vs = VectorSpace(
@@ -63,23 +95,5 @@ def bm25_with_sort(file_path):
     return vs
 
 
-def test_tfidf_sort_document_by_size_english(tfidf_with_sort):
-    # FIXME: VectorSpace has new implementation for Documents
-    documents_length = []
-    for i in (0, 50, 70, -1):
-        which_key = list(tfidf_with_sort.documents_name_content.keys())[i]
-        documents_length.append(
-            len(tfidf_with_sort.documents_name_content[which_key])
-        )
-    assert documents_length[0] >= documents_length[1] >= documents_length[2] >= documents_length[3]
 
 
-def test_bm25_sort_document_by_size_english(bm25_with_sort):
-    # FIXME: VectorSpace has new implementation for Documents
-    documents_length = []
-    for i in (0, 50, 70, -1):
-        which_key = list(bm25_with_sort.documents_name_content.keys())[i]
-        documents_length.append(
-            len(bm25_with_sort.documents_name_content[which_key])
-        )
-    assert documents_length[0] >= documents_length[1] >= documents_length[2] >= documents_length[3]
