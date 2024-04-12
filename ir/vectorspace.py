@@ -2,28 +2,17 @@
 a vector space model for information retrieval with weighting.
 """
 
-import logging
 import os
 from random import sample
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 import numpy as np
 from numpy.typing import NDArray
 from tqdm import tqdm
 
-from .myparser import Parser
 from .metric import Metric
-
-
-def setup_logger(filename, classname, level):
-    logging.basicConfig(level=level.upper())
-    logger = logging.getLogger(f"{filename}.{classname}")
-    logger.propagate = False  # to not process the log message in the root logger
-    handler = logging.StreamHandler()
-    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-    return logger
+from .myparser import Parser
+from .log import setup_logger
 
 
 class VectorSpace:
@@ -36,10 +25,11 @@ class VectorSpace:
             parser: a custom document parser
             logging_level (str): logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
         """
+        self._logging_level = logging_level
         self._logger = setup_logger(
             filename=__file__,
             classname=self.__class__.__name__,
-            level=logging_level.upper(),
+            level=self._logging_level.upper(),
         )
         self.weighting_model = weighting_model
         self.parser = parser
@@ -61,8 +51,12 @@ class VectorSpace:
             sample_size (int): the number of documents to sample
             to_sort (bool): whether to sort the documents by size or not
         """
-        self.docs = Documents(directory=documents_directory, parser=self.parser, sample_size=sample_size, to_sort=to_sort)
+        self.docs = Documents(directory=documents_directory, parser=self.parser, sample_size=sample_size, to_sort=to_sort, logging_level=self._logging_level)
+        self._logger.debug("Random doc before clean: \n%s", self.docs.document_contents[0])
+        self._logger.debug("Length of random doc before clean: %s", len(self.docs.document_contents[0]))
         self.docs.clean_all_documents()
+        self._logger.debug("Random doc after clean: \n%s", self.docs.document_contents[0])
+        self._logger.debug("Length of random doc after clean: %s", len(self.docs.document_contents[0]))
         self.docs.sort_documents_by_size()
         self.documents_vector = self.weighting_model.make_matrix(
             documents_content=self.docs.document_contents,
@@ -70,28 +64,40 @@ class VectorSpace:
         )
         self._is_built = True
         self._logger.info("Vector Space Built")
+        self._logger.info("length of documents_vector: %s", len(self.documents_vector))
+        self._logger.info("length of document_vector: %s", len(self.documents_vector[0]))
 
-    def related(self, doc_index: int = -1):
+    def related(self, metric: str,  doc_index: int = -1):
         """find documents that are related to the document indexed by passed index within the documents' vector."""
         if not self._is_built:
             raise Exception("The vector space model is not built yet.")
         self._logger.info("Finding related documents")
-        self.scores = Metric.cosine_similarity(np.array(self.documents_vector), np.array(self.documents_vector[doc_index]))
+        if metric == "cosine":
+            self.scores = Metric.cosine_similarity(np.array(self.documents_vector), np.array(self.documents_vector[doc_index]))
+        elif metric == "euclidean":
+            self.scores = Metric.euclidean_distance(np.array(self.documents_vector), np.array(self.documents_vector[doc_index]))
+        else:
+            raise Exception("Invalid metric, choose either 'cosine' or 'euclidean'")
         self._usage = "related"
         return self.scores
 
-    def search(self, query: str):
+    def search(self, query: str, metric: str):
         """given a query, find documents that match based on the query string."""
         if not self._is_built:
             raise Exception("The vector space model is not built yet.")
-        self._logger.info(f"Searching documents with query: {query}")
+        self._logger.critical(f"Searching documents with query: {query}")
         self.query_vector = self.weighting_model.make_vector(query, parser=self.parser)
-        self._logger.debug("Query Vector: %s", self.query_vector)
-        self.scores = Metric.cosine_similarity(np.array(self.documents_vector), np.array(self.query_vector))
+        self._logger.debug("Query Vector: \n%s", self.query_vector)
+        if metric == "cosine":
+            self.scores = Metric.cosine_similarity(np.array(self.documents_vector), np.array(self.query_vector))
+        elif metric == "euclidean":
+            self.scores = Metric.euclidean_distance(np.array(self.documents_vector), np.array(self.query_vector))
+        else:
+            raise Exception("Invalid metric, choose either 'cosine' or 'euclidean'")
         self._usage = "search"
         return self.scores
 
-    def rank(self, top_k: int = 10):
+    def rank(self, top_k: int = 10) -> List[Tuple[str, NDArray]]:
         self._logger.info("Ranking documents")
         if self._usage == "related":
             top_k_index = np.argsort(self.scores)[-top_k:][::-1]
@@ -117,7 +123,7 @@ class Documents:
         self._document_names = self._get_document_names()
         self._document_contents = self._get_document_contents()
 
-        self._logger.info("Documents Initialized")
+        self._logger.critical(f"{self._sample_size} Documents Initialized")
 
     def _get_documents_name_content(self) -> Dict[str, str]:
         """
@@ -204,14 +210,16 @@ class Documents:
 
 def main():
     from nltk.stem.porter import PorterStemmer
+
     from ir.model import TFIDF
+
     directory = os.path.join(os.path.dirname(__file__), "sample_data", "EnglishNews")
     vs = VectorSpace(weighting_model=TFIDF(), parser=Parser(stemmer=PorterStemmer()), logging_level="INFO")
     vs.build(documents_directory=directory, sample_size=50, to_sort=True)
 
-    related_scores = vs.related(doc_index=40)
+    related_scores = vs.related(metric="cosine", doc_index=40)
     print(related_scores)
-    search_scores = vs.search("coronavirus is a pandemic")
+    search_scores = vs.search(query="coronavirus is a pandemic", metric="cosine")
     print(search_scores)
 
     for doc, score in vs.rank(top_k=5):

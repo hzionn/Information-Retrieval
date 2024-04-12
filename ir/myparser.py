@@ -6,9 +6,16 @@ import os
 import string
 from typing import List
 
+from .log import setup_logger
+
 
 class Parser:
-    def __init__(self, stemmer=None, language: str = "english"):
+    def __init__(self, stemmer=None, language: str = "english", logging_level="INFO"):
+        self._logger = setup_logger(
+            filename=__file__,
+            classname=self.__class__.__name__,
+            level=logging_level.upper(),
+        )
         self._language = language
         self._stemmer = stemmer
         self.punctuations = self._get_punctuation()

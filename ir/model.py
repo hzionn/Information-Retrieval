@@ -8,10 +8,17 @@ from typing import List
 
 from tqdm import trange
 
+from .log import setup_logger
+
 
 class Model:
     """A template for all weighting models."""
-    def __init__(self):
+    def __init__(self, logging_level="INFO"):
+        self._logger = setup_logger(
+            filename=__file__,
+            classname=self.__class__.__name__,
+            level=logging_level.upper(),
+        )
         self.WEIGHTING_METHOD = ""
         self.documents_content = []
         self.vector_keyword_index = {}
@@ -79,6 +86,7 @@ class TFIDF(Model):
         self.WEIGHTING_METHOD = "TFIDF"
         self.documents_content = []
         self._idf_cache = {}
+        self._logger.critical(f"Choosing model {self.WEIGHTING_METHOD}")
 
     def _tf(self, word: str, words: List[str]) -> float:
         """
@@ -128,9 +136,10 @@ class BM25(Model):
         self.k1 = k1
         self.b = b
         self.documents_content = []
-        self.documents_vector = []
+        # self.documents_vector = []
         self._idf_cache = {}
         self.avgdl = 0
+        self._logger.critical(f"Choosing model {self.WEIGHTING_METHOD}")
 
     def _tf(self, word: str, words: List[str]) -> float:
         """
