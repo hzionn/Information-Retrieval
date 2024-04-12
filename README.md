@@ -12,7 +12,7 @@ It provides simple implementations of basic IR techniques with minimal dependenc
 - **Minimal Dependencies**: Includes only few dependencies (word stemming & tokenise) to keep the module lightweight and easy to understand.
 - **Progress Tracking**: Utilizes the `tqdm` library to provide real-time progress updates during lengthy operations, enhancing user experience.
 - **Detailed Logging**: Incorporates a logging system to track the operations, helping in debugging and ensuring transparency of the process.
-- **Object-Oriented Design**: The module is designed with a focus on modularity and extensibility with little abstraction (OOP).
+- **Object-Oriented Design**: The module is designed with a focus on modularity and extensibility with little abstraction (*OOP*).
   - easy to extend with new features and new weighting models
 - **Optimisation Techniques**: Some optimisation techniques added to speed up the computation process.
   - cache inverse documents frequency
@@ -27,9 +27,29 @@ Install all the dependencies using `pip` within virtual environment:
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+# install dev dependencies
+pip install -r requirements-dev.txt
 ```
 
 ## Usage
+
+### Data Preparation
+
+Example of the data directory structure:
+
+```bash
+./data/
+└── EnglishNews
+   ├── News6.txt
+   ├── News78.txt
+   ├── News84.txt
+   ├── News2994.txt
+   └── News3000.txt
+```
+
+Vector space model can be built by given collection of documents in the `EnglishNews` directory.
+
+### Model Construction
 
 Build vector space model in `main.py` and run:
 
@@ -46,8 +66,6 @@ Check `main.py` for examples.
 Since `Makefile` is provided, you can run all tests with:
 
 ```bash
-# install dev dependencies
-pip install -r requirements-dev.txt
 # run all tests
 make test
 # run coverage
@@ -56,7 +74,7 @@ make cov
 
 ## Acknowledgments
 
-This project began as a part of a course on Web Search and Mining, taught by Professor Tsai at National Chengchi University (NCCU). I extend my heartfelt gratitude to Professor Tsai for his invaluable guidance and the insights that sparked the development of this module.
+This project began as a part of a course on Web Search and Mining, taught by Professor Tsai at National Chengchi University (*NCCU*). I extend my heartfelt gratitude to Professor Tsai for his invaluable guidance and the insights that sparked the development of this module.
 
 A special acknowledgment goes to the adage that reminds us that **software does not merely get built; it grows**.
 
