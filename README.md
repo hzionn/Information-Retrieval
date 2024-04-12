@@ -7,12 +7,14 @@ It provides simple implementations of basic IR techniques with minimal dependenc
 
 ## Features
 
-- **Simple Search and Ranking**: The module provides simple search and ranking functionality using the Vector Space Model.
-- **Automated Testing**: The module includes a suite of automated tests to ensure the reliability and correctness of the implementation.
+- **Simple Search and Ranking**: Provides simple search and ranking functionality using the Vector Space Model.
+- **Automated Testing**: Includes a suite of automated tests to ensure the reliability and correctness of the implementation.
 - **Minimal Dependencies**: Includes only few dependencies (word stemming & tokenise) to keep the module lightweight and easy to understand.
+- **Progress Tracking**: Utilizes the `tqdm` library to provide real-time progress updates during lengthy operations, enhancing user experience.
+- **Detailed Logging**: Incorporates a logging system to track the operations, helping in debugging and ensuring transparency of the process.
 - **Object-Oriented Design**: The module is designed with a focus on modularity and extensibility with little abstraction (OOP).
   - easy to extend with new features and new weighting models
-- **Optimisation Techniques**: The module includes some optimisation techniques to speed up the computation process.
+- **Optimisation Techniques**: Some optimisation techniques added to speed up the computation process.
   - cache inverse documents frequency
   - use matrix multiplication for vector operations
   - process larger documents first (the remaining documents for computation will be smaller and smaller)
