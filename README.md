@@ -33,6 +33,8 @@ Build vector space model in `main.py` and run:
 
 ```bash
 python main.py
+# or with arguments
+python main.py --sample-size 1000 --query "London BBC breaking news" --logging-level CRITICAL
 ```
 
 Check `main.py` for examples.
@@ -42,6 +44,8 @@ Check `main.py` for examples.
 Since `Makefile` is provided, you can run all tests with:
 
 ```bash
+# install dev dependencies
+pip install -r requirements-dev.txt
 # run all tests
 make test
 # run coverage
