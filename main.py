@@ -2,9 +2,9 @@ import argparse
 import os
 from typing import List, Tuple
 
-from nltk.stem import PorterStemmer
+from nltk.stem import PorterStemmer, SnowballStemmer
 
-from ir.basic.model import TFIDF
+from ir.basic.model import TFIDF, BM25
 from ir.basic.myparser import Parser
 from ir.basic.vectorspace import VectorSpace
 
@@ -50,7 +50,7 @@ def print_ranking(ranking: List[Tuple]):
         print(f"{document: <15}", f"{round(score, 7): >12}")
 
 
-def main(sample_size, query, logging_level):
+def main(sample_size: int, query: str, logging_level: str):
     vs = VectorSpace(
         weighting_model=TFIDF(),
         parser=Parser(stemmer=PorterStemmer()),
@@ -73,8 +73,23 @@ def main(sample_size, query, logging_level):
     ranking = vs.rank(top_k=10)
     print_ranking(ranking)
 
+    vs = VectorSpace(
+        weighting_model=BM25(),
+        parser=Parser(stemmer=SnowballStemmer()),
+        logging_level=logging_level,
+    )
+    files_path = os.path.join(os.path.dirname(__file__), "data", "EnglishNews")
+    vs.build(documents_directory=files_path, sample_size=sample_size, to_sort=True)
+    vs.search(query=query, metric="euclidean")
+    ranking = vs.rank(top_k=10)
+    print_ranking(ranking)
+
 
 if __name__ == "__main__":
     parser = get_parser()
     args = parser.parse_args()
-    main(sample_size=args.sample_size, query=args.query, logging_level=args.logging_level.upper())
+    main(
+        sample_size=args.sample_size,
+        query=args.query,
+        logging_level=args.logging_level.upper()
+    )
