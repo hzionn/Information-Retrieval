@@ -3,7 +3,7 @@ import os
 import pytest
 from nltk.stem import PorterStemmer
 
-from ir.myparser import Parser
+from ir.basic.myparser import Parser
 
 
 @pytest.fixture

@@ -4,9 +4,9 @@ from typing import List, Tuple
 
 from nltk.stem import PorterStemmer
 
-from ir.model import TFIDF
-from ir.myparser import Parser
-from ir.vectorspace import VectorSpace
+from ir.basic.model import TFIDF
+from ir.basic.myparser import Parser
+from ir.basic.vectorspace import VectorSpace
 
 
 def get_parser():

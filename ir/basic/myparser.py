@@ -34,7 +34,7 @@ class Parser:
         return stopwords + more_stopwords
 
     def _get_stopwords_file_path(self) -> str:
-        stopwords_path = os.path.join(os.path.dirname(__file__), "stopwords")
+        stopwords_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "stopwords")
         stopwords_file = "EnglishStopwords.txt"
         return os.path.join(stopwords_path, stopwords_file)
 

@@ -3,14 +3,14 @@ import os
 import pytest
 from nltk.stem import PorterStemmer
 
-from ir.model import BM25, TFIDF
-from ir.myparser import Parser
-from ir.vectorspace import VectorSpace
+from ir.basic.model import BM25, TFIDF
+from ir.basic.myparser import Parser
+from ir.basic.vectorspace import VectorSpace
 
 
 @pytest.fixture
 def file_path():
-    return os.path.join(os.path.dirname(__file__), "sample_data", "EnglishNews")
+    return os.path.join(os.path.dirname(os.path.dirname(__file__)), "sample_data", "EnglishNews")
 
 
 @pytest.fixture
