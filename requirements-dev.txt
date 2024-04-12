@@ -1,0 +1,9 @@
+numpy
+nltk
+tqdm
+jieba
+pandas
+black
+isort
+pytest
+pytest-cov

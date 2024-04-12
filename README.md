@@ -1,17 +1,21 @@
 # Information Retrieval
 
-## Notice
+This Python module is designed as an educational and intuitive module for understanding the fundamentals of **Information Retrieval (IR)**.
+It provides simple implementations of basic IR techniques with minimal dependencies.
 
-- some optimisation techniques are applied to speed up the process:
-  - cache word frequency
-  - use `numpy` for vector operations
-  - **process larger documents first** (the remaining documents for computation will be smaller and smaller)
+*The module is intended for educational purposes and is not suitable for production environments.*
 
-## My Environment
+## Features
 
-- OS: MacOS
-- RAM: 8G
-- Python: 3.11
+- **Simple Search and Ranking**: The module provides simple search and ranking functionality using the Vector Space Model.
+- **Automated Testing**: The module includes a suite of automated tests to ensure the reliability and correctness of the implementation.
+- **Minimal Dependencies**: Includes only few dependencies (word stemming & tokenise) to keep the module lightweight and easy to understand.
+- **Object-Oriented Design**: The module is designed with a focus on modularity and extensibility with little abstraction (OOP).
+  - easy to extend with new features and new weighting models
+- **Optimisation Techniques**: The module includes some optimisation techniques to speed up the computation process.
+  - cache inverse documents frequency
+  - use matrix multiplication for vector operations
+  - process larger documents first (the remaining documents for computation will be smaller and smaller)
 
 ## Installation
 
@@ -26,61 +30,34 @@ pip install -r requirements.txt
 ## Usage
 
 Build vector space model in `main.py` and run:
-(all functionality is in `ir` module)
 
 ```bash
 python main.py
+# or with arguments
+python main.py --sample-size 1000 --query "London BBC breaking news" --logging-level CRITICAL
 ```
+
+Check `main.py` for examples.
+
+## Testing
+
+Since `Makefile` is provided, you can run all tests with:
+
+```bash
+# install dev dependencies
+pip install -r requirements-dev.txt
+# run all tests
+make test
+# run coverage
+make cov
+```
+
+## Acknowledgments
+
+This project began as a part of a course on Web Search and Mining, taught by Professor Tsai at National Chengchi University (NCCU). I extend my heartfelt gratitude to Professor Tsai for his invaluable guidance and the insights that sparked the development of this module.
+
+A special acknowledgment goes to the adage that reminds us that **software does not merely get built; it grows**.
 
 ## UML
 
 TODO: UML diagram
-
-## Question 1
-
-TODO:
-
-question 1 is to build a **Vector Space Model** with **TF-IDF** weighting, and search for potential relevent documents using **cosine similarity**.
-
-you may feed a specific query to the model by just adding `--query <your query>` right after the execution file.
-if you leave `--query` blank, the query will set to be default query as "Youtube Taiwan COVID-19".
-full documents size is 8000, but you can set a smaller size (not too small) for testing by adding `--n_sample <number>`.
-
-```terminal
-cd question_1
-python main.py --query Youtube Taiwan COVID-19 --n_sample 500
-```
-
-last two sections of the output will be rankings (Top 10) with using (**TF-IDF** + **Cosine Similarity**) or (**TF-IDF** + **Euclidean Distance**)
-
-## Question 2
-
-TODO:
-
-in question 2, we need to re-score the documents with a simple relevance feedback technique (**pseudo feedback**).
-
-in `search`, only if we have give `old_query_vector` argurment then it will re-score the documents with new query vector.
-
-```python
-def search(self, searchList: list, distance: str, old_query_vector: list[float] = None) -> list:
-    """search for documents that match based on a list of terms"""
-    assert distance in ("cosine", "euclidean")
-
-    print("...searching relevent documents...")
-    queryVector = self.buildQueryVector(searchList)
-
-    # for second retrieve
-    if old_query_vector:
-        # re-weighting with old query vector and new one to form a new query vector
-        new_query_vector = (1 * np.array(old_query_vector)) + (0.5 * np.array(queryVector))
-        ratings = util.cosine(np.array(self.documentVectors), new_query_vector)
-        return ratings
-
-    # for first retrieve
-    if not old_query_vector:
-        if distance == "cosine":
-            ratings = util.cosine(np.array(self.documentVectors), np.array(queryVector))
-        elif distance == "euclidean":
-            ratings = util.euclidean(np.array(self.documentVectors), np.array(queryVector))
-        return ratings, queryVector
-```
