@@ -33,6 +33,24 @@ pip install -r requirements-dev.txt
 
 ## Usage
 
+### Data Preparation
+
+Example of the data directory structure:
+
+```bash
+./data/
+└── EnglishNews
+   ├── News6.txt
+   ├── News78.txt
+   ├── News84.txt
+   ├── News2994.txt
+   └── News3000.txt
+```
+
+Vector space model can be built by given collection of documents in the `EnglishNews` directory.
+
+### Model Construction
+
 Build vector space model in `main.py` and run:
 
 ```bash
