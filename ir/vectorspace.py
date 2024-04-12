@@ -4,71 +4,142 @@ a vector space model for information retrieval with weighting.
 
 import os
 from random import sample
-from typing import Dict
+from typing import Dict, List, Tuple
 
+import numpy as np
+from numpy.typing import NDArray
 from tqdm import tqdm
 
-from .model import TFIDF
+from .metric import Metric
 from .myparser import Parser
+from .log import setup_logger
 
 
 class VectorSpace:
     """a vector space model for information retrieval with weighting."""
 
-    def __init__(self, weighting_model=TFIDF(), parser=Parser()):
+    def __init__(self, weighting_model, parser=Parser(), logging_level="INFO"):
         """
         Args:
             weighting_model: a document weighting model
             parser: a custom document parser
+            logging_level (str): logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
         """
+        self._logging_level = logging_level
+        self._logger = setup_logger(
+            filename=__file__,
+            classname=self.__class__.__name__,
+            level=self._logging_level.upper(),
+        )
         self.weighting_model = weighting_model
         self.parser = parser
-        self.documents_directory = ""
-        self.documents_name_content = {}  # TODO: this can be a stand alone class
-        print("Vector Space Initailized")
+        self.docs = None
+        self.documents_vector = [[]]
+        self.query_vector = []
+        self._is_built = False
+        self._usage = ""
+        self.scores: NDArray
+
+        self._logger.info("Vector Space Initailized")
 
     def build(self, documents_directory: str, sample_size: int = -1, to_sort: bool = True):
         """
         a pipeline to build our vector space model
 
         Args:
-            documents_directory(str): the directory containing all documents
-            sample_size(int): the number of documents to sample
-            to_sort(bool): whether to sort the documents by size or not
+            documents_directory (str): the directory containing all documents
+            sample_size (int): the number of documents to sample
+            to_sort (bool): whether to sort the documents by size or not
         """
-        self.documents_directory = documents_directory
-        self.documents_name_content = self._get_documents_name_content(sample_size=sample_size)
-        self.documents_name_content = self._clean_all_documents()
-        self.documents_name_content = self._sort_documents_by_size(to_sort=to_sort)
-        self.weighting_model.compute(
-            documents_content=list(self.documents_name_content.values()),
+        self.docs = Documents(directory=documents_directory, parser=self.parser, sample_size=sample_size, to_sort=to_sort, logging_level=self._logging_level)
+        self._logger.debug("Random doc before clean: \n%s", self.docs.document_contents[0])
+        self._logger.debug("Length of random doc before clean: %s", len(self.docs.document_contents[0]))
+        self.docs.clean_all_documents()
+        self._logger.debug("Random doc after clean: \n%s", self.docs.document_contents[0])
+        self._logger.debug("Length of random doc after clean: %s", len(self.docs.document_contents[0]))
+        self.docs.sort_documents_by_size()
+        self.documents_vector = self.weighting_model.make_matrix(
+            documents_content=self.docs.document_contents,
             parser=self.parser,
         )
-        print("Vector Space Built")
+        self._is_built = True
+        self._logger.info("Vector Space Built")
+        self._logger.info("length of documents_vector: %s", len(self.documents_vector))
+        self._logger.info("length of document_vector: %s", len(self.documents_vector[0]))
 
-    def _clean_single_document(self, document_content: str) -> str:
-        """clean single document content"""
-        cleaned_content = self.parser.tokenise(document_content)
-        cleaned_content = self.parser.remove_stopwords(cleaned_content)
-        return " ".join(cleaned_content)
+    def related(self, metric: str,  doc_index: int = -1):
+        """find documents that are related to the document indexed by passed index within the documents' vector."""
+        if not self._is_built:
+            raise Exception("The vector space model is not built yet.")
+        self._logger.info("Finding related documents")
+        if metric == "cosine":
+            self.scores = Metric.cosine_similarity(np.array(self.documents_vector), np.array(self.documents_vector[doc_index]))
+        elif metric == "euclidean":
+            self.scores = Metric.euclidean_distance(np.array(self.documents_vector), np.array(self.documents_vector[doc_index]))
+        else:
+            raise Exception("Invalid metric, choose either 'cosine' or 'euclidean'")
+        self._usage = "related"
+        return self.scores
 
-    def _clean_all_documents(self) -> Dict[str, str]:
-        """clean all documents content"""
-        for name, content in tqdm(self.documents_name_content.items(), desc="Cleaning documents", ncols=90):
-            self.documents_name_content[name] = self._clean_single_document(content)
-        return self.documents_name_content
+    def search(self, query: str, metric: str):
+        """given a query, find documents that match based on the query string."""
+        if not self._is_built:
+            raise Exception("The vector space model is not built yet.")
+        self._logger.critical(f"Searching documents with query: {query}")
+        self.query_vector = self.weighting_model.make_vector(query, parser=self.parser)
+        self._logger.debug("Query Vector: \n%s", self.query_vector)
+        if metric == "cosine":
+            self.scores = Metric.cosine_similarity(np.array(self.documents_vector), np.array(self.query_vector))
+        elif metric == "euclidean":
+            self.scores = Metric.euclidean_distance(np.array(self.documents_vector), np.array(self.query_vector))
+        else:
+            raise Exception("Invalid metric, choose either 'cosine' or 'euclidean'")
+        self._usage = "search"
+        return self.scores
 
-    def _get_documents_name_content(self, sample_size: int = -1) -> Dict[str, str]:
+    def rank(self, top_k: int = 10) -> List[Tuple[str, NDArray]]:
+        self._logger.info("Ranking documents")
+        if self._usage == "related":
+            top_k_index = np.argsort(self.scores)[-top_k:][::-1]
+        elif self._usage == "search":
+            top_k_index = np.argsort(self.scores)[-top_k:][::-1]
+        else:
+            raise Exception("You need to call related() or search() first.")
+        return [(self.docs.document_names[i], self.scores[i]) for i in top_k_index if self.docs is not None]
+
+
+class Documents:
+    def __init__(self, directory: str, parser, sample_size: int = -1, to_sort: bool = True, logging_level: str = "INFO") -> None:
+        self._logger = setup_logger(
+            filename=__file__,
+            classname=self.__class__.__name__,
+            level=logging_level.upper(),
+        )
+        self._directory = directory
+        self._parser = parser
+        self._sample_size = sample_size
+        self._to_sort = to_sort
+        self._info = self._get_documents_name_content()
+        self._document_names = self._get_document_names()
+        self._document_contents = self._get_document_contents()
+
+        self._logger.critical(f"{self._sample_size} Documents Initialized")
+
+    def _get_documents_name_content(self) -> Dict[str, str]:
         """
         get all documents' name and content then map them
 
         Args:
-            sample_size(int): the number of documents to sample (<=0 means all documents)
+            sample_size (int): the number of documents to sample (-1 means all documents)
         """
+        self._logger.info("Getting documents' name and content")
         name_content = {}
-        path = os.path.join(os.path.dirname(__file__), self.documents_directory)
+        path = os.path.join(os.path.dirname(__file__), self._directory)
         only_text_files = [f for f in os.listdir(path) if f.endswith(".txt")]
-        names = sample(only_text_files, sample_size) if sample_size > 0 else only_text_files
+        if self._sample_size == -1:
+            names = only_text_files
+        else:
+            names = sample(only_text_files, self._sample_size)
         contents = []
         for document in names:
             with open(os.path.join(path, document), "r") as f:
@@ -79,30 +150,80 @@ class VectorSpace:
             name_content[name] = content
         return name_content
 
-    def _sort_documents_by_size(self, to_sort: bool) -> Dict[str, str]:
+    def _get_document_names(self) -> List[str]:
+        self._logger.info("Getting documents' names")
+        return list(self._info.keys())
+
+    def _get_document_contents(self) -> List[str]:
+        self._logger.info("Getting documents' contents")
+        return list(self._info.values())
+
+    def _clean_single_document(self, document_content: str) -> str:
+        """clean single document content"""
+        cleaned_content = self._parser.tokenise(document_content)
+        cleaned_content = self._parser.remove_stopwords(cleaned_content)
+        return " ".join(cleaned_content)
+
+    def _update(self):
+        self._document_names = self._get_document_names()
+        self._document_contents = self._get_document_contents()
+        self._logger.info("Documents Updated")
+
+    def clean_all_documents(self):
+        """clean all documents content"""
+        self._logger.info("Cleaning all documents")
+        for name, content in tqdm(self._info.items(), desc="Cleaning documents", ncols=90):
+            self._info[name] = self._clean_single_document(content)
+        self._update()
+
+    def sort_documents_by_size(self):
         """sort documents_name_content by content size (this can greatly speed up the building process)"""
-        if not to_sort:
-            return self.documents_name_content
-        name_content = self.documents_name_content
-        sorted_name_content = {}
-        name_len = {name: len(name_content[name]) for name in name_content}
-        name_len_sorted = dict(sorted(name_len.items(), key=lambda x: x[1], reverse=True))
-        new_name_content = {name: name_content[name] for name in name_len_sorted.keys()}
-        for doc, news in tqdm(zip(list(new_name_content.keys()), list(new_name_content.values())), desc="Sorting documents by size", ncols=90):
-            sorted_name_content[doc] = news
-        return sorted_name_content
+        if not self._to_sort:
+            self._logger.info("Documents will not sort by size")
+        else:
+            self._logger.info("Sorting documents by size")
+            name_content = self._info
+            sorted_name_content = {}
+            name_len = {name: len(name_content[name]) for name in name_content}
+            name_len_sorted = dict(sorted(name_len.items(), key=lambda x: x[1], reverse=True))
+            new_name_content = {name: name_content[name] for name in name_len_sorted.keys()}
+            for doc, news in tqdm(zip(list(new_name_content.keys()), list(new_name_content.values())), desc="Sorting documents by size", ncols=90):
+                sorted_name_content[doc] = news
+            self._info = sorted_name_content
+        self._update()
 
+    @property
+    def info(self) -> Dict[str, str]:
+        return self._info
 
-class Documents:
-    # TODO:
-    def __init__(self) -> None:
-        self.directory = ""
-        self.filenames = []
-        self.filecontents = []
+    @property
+    def document_names(self) -> List[str]:
+        return self._document_names
+
+    @property
+    def document_contents(self) -> List[str]:
+        return self._document_contents
+
+    def __str__(self):
+        return f"{self.info}"
 
 
 def main():
-    pass
+    from nltk.stem.porter import PorterStemmer
+
+    from ir.model import TFIDF
+
+    directory = os.path.join(os.path.dirname(__file__), "sample_data", "EnglishNews")
+    vs = VectorSpace(weighting_model=TFIDF(), parser=Parser(stemmer=PorterStemmer()), logging_level="INFO")
+    vs.build(documents_directory=directory, sample_size=50, to_sort=True)
+
+    related_scores = vs.related(metric="cosine", doc_index=40)
+    print(related_scores)
+    search_scores = vs.search(query="coronavirus is a pandemic", metric="cosine")
+    print(search_scores)
+
+    for doc, score in vs.rank(top_k=5):
+        print(doc, score)
 
 
 if __name__ == "__main__":

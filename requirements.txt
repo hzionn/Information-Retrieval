@@ -4,5 +4,8 @@ tqdm
 jieba
 pandas
 
+# for development
+#black
+#isort
 #pytest
 #pytest-cov

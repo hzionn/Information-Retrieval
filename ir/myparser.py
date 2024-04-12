@@ -6,9 +6,16 @@ import os
 import string
 from typing import List
 
+from .log import setup_logger
+
 
 class Parser:
-    def __init__(self, stemmer=None, language: str = "english"):
+    def __init__(self, stemmer=None, language: str = "english", logging_level="INFO"):
+        self._logger = setup_logger(
+            filename=__file__,
+            classname=self.__class__.__name__,
+            level=logging_level.upper(),
+        )
         self._language = language
         self._stemmer = stemmer
         self.punctuations = self._get_punctuation()
@@ -21,7 +28,8 @@ class Parser:
 
     def _get_stopwords(self) -> List[str]:
         stopwords_file_path = self._get_stopwords_file_path()
-        stopwords = [w.strip() for w in open(stopwords_file_path, "r").readlines()]
+        with open(stopwords_file_path, "r") as file:
+            stopwords = [word.strip() for word in file.readlines()]
         more_stopwords = ["I"]
         return stopwords + more_stopwords
 
@@ -35,7 +43,7 @@ class Parser:
         tokenise a document content and stem words for English.
 
         Args:
-            document_content(str): the content of a single document
+            document_content (str): the content of a single document
 
         Return:
             List[str]: a list of word tokens
@@ -47,12 +55,11 @@ class Parser:
         return [word for word in words_list if word not in self.stopwords]
 
     def _clean_punctuation(self, string: str) -> str:
-        # FIXME: replace punctuation with space
-        return string.translate(str.maketrans("", "", "".join(self.punctuations)))
+        return string.translate(str.maketrans("".join(self.punctuations), ' '*len(self.punctuations)))
 
     def stem(self, word: str) -> str:
         if not self._stemmer:
-            raise TypeError("Stemmer is not defined.") 
+            raise ValueError("Stemmer is not defined.") 
         return self._stemmer.stem(word)
 
 
