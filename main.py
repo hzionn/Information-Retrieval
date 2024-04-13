@@ -3,6 +3,7 @@ showcase of some usage of this `ir` module.
 """
 
 import argparse
+import joblib
 import os
 from typing import List, Tuple
 
@@ -57,13 +58,14 @@ def print_ranking(ranking: List[Tuple]):
 
 def main(sample_size: int, query: str, logging_level: str):
 
+    files_path = os.path.join("data", "EnglishNews")
+
     # TFIDF + PorterStemmer + Cosine Similarity
     vs = VectorSpace(
         weighting_model=TFIDF(),
         parser=Parser(stemmer=PorterStemmer()),
         logging_level=logging_level,
     )
-    files_path = os.path.join("data", "EnglishNews")
     vs.build(documents_directory=files_path, sample_size=sample_size)
     vs.search(query=query, metric="cosine")
     ranking = vs.rank(top_k=10)
@@ -75,7 +77,6 @@ def main(sample_size: int, query: str, logging_level: str):
         parser=Parser(stemmer=PorterStemmer()),
         logging_level=logging_level,
     )
-    files_path = os.path.join("data", "EnglishNews")
     vs.build(documents_directory=files_path, sample_size=sample_size)
     vs.search(query=query, metric="euclidean")
     ranking = vs.rank(top_k=10)
@@ -87,20 +88,26 @@ def main(sample_size: int, query: str, logging_level: str):
         parser=Parser(stemmer=SnowballStemmer(language="english")),
         logging_level=logging_level,
     )
-    files_path = os.path.join("data", "EnglishNews")
     vs.build(documents_directory=files_path, sample_size=sample_size)
+    print("Saving the model to disk.")
+    joblib.dump(vs, os.path.join("vsm", "bm25_snwball_vs.joblib"))
     vs.search(query=query, metric="euclidean")
     ranking = vs.rank(top_k=10)
     print_ranking(ranking)
-
-    # TODO: save the built model to disk using pickle.
 
 
 if __name__ == "__main__":
     parser = get_parser()
     args = parser.parse_args()
     main(
+
         sample_size=args.sample_size,
         query=args.query,
         logging_level=args.logging_level.upper()
     )
+
+    print("Loading previosuly saved model.")
+    vs_loaded = joblib.load(os.path.join("vsm", "bm25_snwball_vs.joblib"))
+    vs_loaded.search(query=args.query, metric="cosine")
+    ranking = vs_loaded.rank(top_k=10)
+    print_ranking(ranking)
