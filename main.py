@@ -99,8 +99,8 @@ def main(sample_size: int, query: str, logging_level: str):
 if __name__ == "__main__":
     parser = get_parser()
     args = parser.parse_args()
-    main(
 
+    main(
         sample_size=args.sample_size,
         query=args.query,
         logging_level=args.logging_level.upper()
