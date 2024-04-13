@@ -13,3 +13,6 @@ cov:
 clean:
 	rm -rf __pycache__ .pytest_cache .coverage* .DS_Store *_UML.txt
 	rm -rf */__pycache__ */.DS_Store */*_UML.txt
+
+uml:
+	pyreverse -p ir ir/ -o png -d docs/ --colorized
