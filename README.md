@@ -59,6 +59,30 @@ python main.py
 python main.py --sample-size 1000 --query "London BBC breaking news" --logging-level CRITICAL
 ```
 
+### Save and Load Model
+
+Here's the code snippet to save and load the model, with `joblib` library:
+
+*the `joblib` library is particularly efficient for objects that carry large numpy arrays, which might be the case with a vector space model.*
+
+```python
+import joblib
+
+vs = VectorSpace(
+    weighting_model=BM25(),
+    parser=Parser(stemmer=SnowballStemmer(language="english")),
+    logging_level=logging_level,
+)
+vs.build(documents_directory=files_path, sample_size=sample_size)
+
+# saving the model to disk
+joblib.dump(vs, os.path.join("vsm", "bm25_snwball_vs.joblib"))
+
+# load model from disk
+vs_loaded = joblib.load(os.path.join("vsm", "bm25_snwball_vs.joblib"))
+vs_loaded.search("London BBC breaking news")
+```
+
 Check `main.py` for examples.
 
 ## Testing
