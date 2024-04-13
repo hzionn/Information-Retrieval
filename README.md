@@ -104,4 +104,4 @@ A special acknowledgment goes to the adage that reminds us that **software does 
 
 ## UML
 
-see UML diagram [here](./docs/classes_ir.png).
+see UML diagram [here](./docs/classes_ir.png). (generate by `pyreverse`)
