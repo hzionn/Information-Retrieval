@@ -1,6 +1,8 @@
 .DS_Store
+.vscode/
 .venv/
 WT2G/
+data/
 
 *.zip
 *.pages
