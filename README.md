@@ -104,4 +104,4 @@ A special acknowledgment goes to the adage that reminds us that **software does 
 
 ## UML
 
-TODO: UML diagram
+see UML diagram [here](./docs/classes_ir.png).
