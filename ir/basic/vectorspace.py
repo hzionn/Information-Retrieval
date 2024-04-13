@@ -134,15 +134,14 @@ class Documents:
         """
         self._logger.info("Getting documents' name and content")
         name_content = {}
-        path = os.path.join(os.path.dirname(__file__), self._directory)
-        only_text_files = [f for f in os.listdir(path) if f.endswith(".txt")]
+        only_text_files = [f for f in os.listdir(self._directory) if f.endswith(".txt")]
         if self._sample_size == -1:
             names = only_text_files
         else:
             names = sample(only_text_files, self._sample_size)
         contents = []
         for document in names:
-            with open(os.path.join(path, document), "r") as f:
+            with open(os.path.join(self._directory, document), "r") as f:
                 content = " ".join(f.readlines())
                 contents.append(content)
         assert len(names) == len(contents)

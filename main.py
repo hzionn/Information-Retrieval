@@ -1,3 +1,7 @@
+"""
+showcase of some usage of this `ir` module.
+"""
+
 import argparse
 import os
 from typing import List, Tuple
@@ -28,13 +32,14 @@ def get_parser():
     parser.add_argument(
         "--logging-level",
         type=str,
-        default="INFO",
+        default="CRITICAL",
         help="Logging level",
     )
     return parser
 
 
 def content_block(func):
+    """A decorator to print a content block around the output of the print_ranking function."""
     def warp(*args, **kwargs):
         print("#" * 30)
         print(f"{'NewsID': <15}", f"{'score': >8}")
@@ -51,38 +56,44 @@ def print_ranking(ranking: List[Tuple]):
 
 
 def main(sample_size: int, query: str, logging_level: str):
+
+    # TFIDF + PorterStemmer + Cosine Similarity
     vs = VectorSpace(
         weighting_model=TFIDF(),
         parser=Parser(stemmer=PorterStemmer()),
         logging_level=logging_level,
     )
-    files_path = os.path.join(os.path.dirname(__file__), "data", "EnglishNews")
-    vs.build(documents_directory=files_path, sample_size=sample_size, to_sort=True)
+    files_path = os.path.join("data", "EnglishNews")
+    vs.build(documents_directory=files_path, sample_size=sample_size)
     vs.search(query=query, metric="cosine")
     ranking = vs.rank(top_k=10)
     print_ranking(ranking)
 
+    # TFIDF + PorterStemmer + Euclidean Distance
     vs = VectorSpace(
         weighting_model=TFIDF(),
         parser=Parser(stemmer=PorterStemmer()),
         logging_level=logging_level,
     )
-    files_path = os.path.join(os.path.dirname(__file__), "data", "EnglishNews")
-    vs.build(documents_directory=files_path, sample_size=sample_size, to_sort=True)
+    files_path = os.path.join("data", "EnglishNews")
+    vs.build(documents_directory=files_path, sample_size=sample_size)
     vs.search(query=query, metric="euclidean")
     ranking = vs.rank(top_k=10)
     print_ranking(ranking)
 
+    # Okapi BM25 + SnowballStemmer + Euclidean Distance
     vs = VectorSpace(
         weighting_model=BM25(),
-        parser=Parser(stemmer=SnowballStemmer()),
+        parser=Parser(stemmer=SnowballStemmer(language="english")),
         logging_level=logging_level,
     )
-    files_path = os.path.join(os.path.dirname(__file__), "data", "EnglishNews")
-    vs.build(documents_directory=files_path, sample_size=sample_size, to_sort=True)
+    files_path = os.path.join("data", "EnglishNews")
+    vs.build(documents_directory=files_path, sample_size=sample_size)
     vs.search(query=query, metric="euclidean")
     ranking = vs.rank(top_k=10)
     print_ranking(ranking)
+
+    # TODO: save the built model to disk using pickle.
 
 
 if __name__ == "__main__":
