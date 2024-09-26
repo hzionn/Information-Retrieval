@@ -2,7 +2,7 @@ run:
 	python main.py
 
 vec:
-	python -m ir.vectorspace
+	python -m ir.basic.vectorspace
 
 test:
 	pytest tests
