@@ -4,19 +4,14 @@
 __pycache__/
 .vscode/
 .venv/
+venv/
+data/
 
 *_UML.txt
-
-EnglishNews/
-ChineseNews/
-
-ir/sample_data/
-
-!tests/sample_data/EnglishNews/
-!tests/sample_data/ChineseNews/
 
 *.zip
 *.pages
 *.key
 *.gdoc
 *.tbz
+*.joblib
