@@ -67,7 +67,7 @@ class VectorSpace:
         self._logger.info("length of documents_vector: %s", len(self.documents_vector))
         self._logger.info("length of document_vector: %s", len(self.documents_vector[0]))
 
-    def related(self, metric: str,  doc_index: int = -1):
+    def related(self, metric: str, doc_index: int = -1):
         """find documents that are related to the document indexed by passed index within the documents' vector."""
         if not self._is_built:
             raise Exception("The vector space model is not built yet.")
@@ -210,9 +210,9 @@ class Documents:
 def main():
     from nltk.stem.porter import PorterStemmer
 
-    from ir.model import TFIDF
+    from .model import TFIDF
 
-    directory = os.path.join(os.path.dirname(__file__), "sample_data", "EnglishNews")
+    directory = os.path.join("sample_data", "EnglishNews")
     vs = VectorSpace(weighting_model=TFIDF(), parser=Parser(stemmer=PorterStemmer()), logging_level="INFO")
     vs.build(documents_directory=directory, sample_size=50, to_sort=True)
 
