@@ -58,7 +58,7 @@ def print_ranking(ranking: List[Tuple]):
 
 def main(sample_size: int, query: str, logging_level: str):
 
-    files_path = os.path.join("data", "EnglishNews")
+    files_path = os.path.join("sample_data", "EnglishNews")
 
     # TFIDF + PorterStemmer + Cosine Similarity
     vs = VectorSpace(
