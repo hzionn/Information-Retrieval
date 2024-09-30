@@ -39,7 +39,7 @@ Example of the data directory structure:
 
 ```bash
 ./data/
-└── EnglishNews
+� EnglishNews
    ├── News6.txt
    ├── News78.txt
    ├── News84.txt
@@ -101,6 +101,32 @@ make cov
 This project began as a part of a course on Web Search and Mining, taught by Professor Tsai at National Chengchi University (*NCCU*). I extend my heartfelt gratitude to Professor Tsai for his invaluable guidance and the insights that sparked the development of this module.
 
 A special acknowledgment goes to the adage that reminds us that **software does not merely get built; it grows**.
+
+## Advanced Module
+
+In addition to the basic module, we have introduced an advanced module written in Golang for performance boost in heavy lifting functions. This module includes the following components:
+
+- **Logger**: A logger setup function similar to `setup_logger` in `log.py`.
+- **Metric**: A Metric struct with methods for cosine similarity and euclidean distance.
+- **Model**: A Model struct with methods for weighting, vector creation, and matrix creation. It also includes TFIDF and BM25 structs that embed Model and override necessary methods.
+- **Parser**: A Parser struct with methods for tokenizing, removing stopwords, and stemming words.
+- **VectorSpace**: A VectorSpace struct with methods for building the model, finding related documents, searching, and ranking. It also includes a Documents struct with methods for loading, cleaning, and sorting documents.
+
+### Installation
+
+To use the advanced module, you need to have Golang installed. You can install Golang from [here](https://golang.org/dl/).
+
+### Usage
+
+To use the advanced module, you need to build the Go code and run it. Here is an example of how to do it:
+
+```bash
+cd ir/advance
+go build
+./advance
+```
+
+You can then use the advanced module in your Python code by importing the necessary components from the `advance` package.
 
 ## UML
 
